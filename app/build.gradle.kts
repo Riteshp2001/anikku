@@ -28,8 +28,8 @@ android {
     defaultConfig {
         applicationId = "app.anikku"
 
-        versionCode = 5
-        versionName = "0.1.5"
+        versionCode = 7
+        versionName = "0.1.8"
 
         buildConfigField("String", "COMMIT_COUNT", "\"${getCommitCount()}\"")
         buildConfigField("String", "COMMIT_SHA", "\"${getGitSha()}\"")

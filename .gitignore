@@ -20,4 +20,5 @@ local.properties
 /app/client_secrets.json
 /app/google-services.json
 *.jks
+release-credentials.txt
 app/standard/preview/*

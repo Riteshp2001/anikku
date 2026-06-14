@@ -75,7 +75,7 @@ jobs:
         run: |
           echo "COMMIT_LOGS<<{delimiter}
           $(curl -H "Accept: application/vnd.github.v3+json" \
-            "https://api.github.com/repos/komikku-app/anikku/compare/${{ steps.previous_commit.outputs.PREV_RELEASE_SHA }}...${{ steps.current_commit.outputs.CURRENT_SHA }}" \
+            "https://api.github.com/repos/${{ github.repository }}/compare/${{ steps.previous_commit.outputs.PREV_RELEASE_SHA }}...${{ steps.current_commit.outputs.CURRENT_SHA }}" \
             | jq '[.commits[]|{message:(.commit.message | split("\n")), username:.author.login}]' \
             | jq -r '.[]|"- \(.message | first) (@\(.username))"')
           {delimiter}" >> $GITHUB_OUTPUT
@@ -97,19 +97,15 @@ jobs:
           java-version: 17
           distribution: temurin
 
-      - name: Write google-services.json
-        uses: DamianReeves/write-file-action@6929a9a6d1807689191dcc8bbe62b54d70a32b42 # v1.3
-        with:
-          path: app/google-services.json
-          contents: ${{ secrets.GOOGLE_SERVICES_JSON }}
-          write-mode: overwrite
-
-      - name: Write client_secrets.json
-        uses: DamianReeves/write-file-action@6929a9a6d1807689191dcc8bbe62b54d70a32b42 # v1.3
-        with:
-          path: app/src/main/assets/client_secrets.json
-          contents: ${{ secrets.GOOGLE_CLIENT_SECRETS_JSON }}
-          write-mode: overwrite
+      - name: Write optional config files
+        run: |
+          if [ -n "${{ secrets.GOOGLE_SERVICES_JSON }}" ]; then
+            echo "${{ secrets.GOOGLE_SERVICES_JSON }}" > app/google-services.json
+          fi
+          if [ -n "${{ secrets.GOOGLE_CLIENT_SECRETS_JSON }}" ]; then
+            mkdir -p app/src/main/assets
+            echo "${{ secrets.GOOGLE_CLIENT_SECRETS_JSON }}" > app/src/main/assets/client_secrets.json
+          fi
 
       - name: Set up gradle
         uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a # v4
@@ -188,7 +184,7 @@ jobs:
           tag_name: ${{ needs.prepare-build.outputs.VERSION_TAG }}
           name: Anikku ${{ needs.prepare-build.outputs.VERSION_TAG }}
           body: |
-            [![GitHub downloads](https://img.shields.io/github/downloads/komikku-app/anikku/${{ needs.prepare-build.outputs.VERSION_TAG }}/total?label=Downloaded&labelColor=27303D&color=0D1117&logo=github&logoColor=FFFFFF&style=flat)](https://github.com/komikku-app/anikku/releases/${{ needs.prepare-build.outputs.VERSION_TAG }})
+            [![GitHub downloads](https://img.shields.io/github/downloads/${{ github.repository }}/${{ needs.prepare-build.outputs.VERSION_TAG }}/total?label=Downloaded&labelColor=27303D&color=0D1117&logo=github&logoColor=FFFFFF&style=flat)](https://github.com/${{ github.repository }}/releases/${{ needs.prepare-build.outputs.VERSION_TAG }})
 
             #### What's Changed
             ##### New
@@ -201,7 +197,7 @@ jobs:
 
             ##### Based on
 
-            **Full Changelog**: [komikku-app/anikku@${{ needs.prepare-build.outputs.PREV_TAG_NAME }}...${{ needs.prepare-build.outputs.VERSION_TAG }}](https://github.com/komikku-app/anikku/compare/${{ needs.prepare-build.outputs.PREV_TAG_NAME }}...${{ needs.prepare-build.outputs.VERSION_TAG }})
+            **Full Changelog**: [${{ github.repository }}@${{ needs.prepare-build.outputs.PREV_TAG_NAME }}...${{ needs.prepare-build.outputs.VERSION_TAG }}](https://github.com/${{ github.repository }}/compare/${{ needs.prepare-build.outputs.PREV_TAG_NAME }}...${{ needs.prepare-build.outputs.VERSION_TAG }})
 
             ---
 
